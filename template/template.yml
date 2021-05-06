@@ -1,0 +1,36 @@
+#empty value = null or ~
+#lower case is editable. Do not edit the names of CAPITALISED fields
+
+#data location settings
+#string type
+FILE_DIRECTORY: test.xlsx
+SHEET_NAME: Sheet1
+
+#Email SMTP
+SERVER: "smtp.office365.com"
+PORT: 587
+
+#row range. integer type (cannot be null)
+RANGE:
+    START: 2
+    END: 4
+
+#customization data
+DATA:
+- forename: 2
+- surname: 3
+- code: 4
+
+#Email Recepient Data (Can have multiple TO's and CCs just add a new line
+TO: 
+-   student: 1
+CC: 
+-   parent: 5
+
+#Email Server
+
+
+SUBJECT: "Your Code"
+EMAIL_TEMPLATE: > #HTML.   do not edit this line https://pypi.org/project/tkhtmlview/: list of html tags that can be displayed in the window
+ <p>Dear %forename %surname,<br>
+ Your code is: %code</p>
