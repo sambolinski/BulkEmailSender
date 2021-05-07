@@ -24,9 +24,21 @@ class GeneratedEmail:
         self.id = GeneratedEmail.static_id
     def parse_body(self, excel_data, data_config):
         self.body_generated = self.body_raw
-        for data in data_config:
-            data_converted = str(excel_data.cell(row=self.row, column=list(data.values())[0]).value)
-            self.body_generated = self.body_generated.replace("%"+list(data.keys())[0], data_converted)
+
+        #sorting data to stop subset conflicts
+        initial_dictionary = {}
+        for i in data_config:
+            initial_dictionary.update(i)
+        data_values = {}
+        temp = list(initial_dictionary.items())
+        temp.sort(key=lambda x:len(x[0]),reverse=True)
+        for i in temp:
+            data_values.update({i[0]:i[1]})
+        
+        #replacing values
+        for data in data_values:
+            data_converted = str(excel_data.cell(row=self.row, column=data_values[data]).value)
+            self.body_generated = self.body_generated.replace("%"+data, data_converted)
     def generate_mimetext(self, sender):
         #Email formatting
         mimetext_formatted = MIMEText(self.body_generated, 'html')
