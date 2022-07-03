@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter.ttk import Frame, Button, Style, Progressbar
 from tkinter import filedialog
 from tkhtmlview import HTMLLabel
+from os.path import basename
 
 class GUI(Frame):
 
@@ -40,9 +41,12 @@ class GUI(Frame):
 
             html = "<b>To:</b> " + to_list + "<br>"
             html +="<b>CC:</b> " + cc_list + "<br>"
-            html +="<b>Subject:</b> " + current_email.subject+"<br><br>"
+            html +="<b>Subject:</b> " + current_email.subject+"<br>"
+            html +="<b>Attachments:</b> " + ", ".join([basename(attachment) for attachment in current_email.attachments]) +"<br><br>"
+
             current_email.body_raw = self.html_editor.get("1.0",'end-1c')
             current_email.parse_body(self.controller.worksheet,self.controller.email_config["DATA"])
+
             self.email_generated_display.set_html("<html>"+html+self.controller.generated_email_list[self.current_selection].body_generated+"</html>")
         else:
             self.email_generated_display.set_html("<html></html>")

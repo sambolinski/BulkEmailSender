@@ -4,22 +4,25 @@ import yaml
 from openpyxl import load_workbook
 
 from gui import GUI, DetailsWindow
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import smtplib
 from datetime import datetime
+from os.path import basename
 
 ##########################
 #       EMAIL DATA       #
 ##########################
 class GeneratedEmail:
     static_id = 0
-    def __init__(self, to, cc, subject, body_raw, row):
+    def __init__(self, to, cc, subject, attachments, body_raw, row):
         self.to = to
         self.cc = cc
         self.subject = subject
         self.body_raw = body_raw
         self.body_generated = body_raw
         self.row = row
+        self.attachments = attachments
         GeneratedEmail.static_id += 1
         self.id = GeneratedEmail.static_id
     def parse_body(self, excel_data, data_config):
@@ -41,11 +44,21 @@ class GeneratedEmail:
             self.body_generated = self.body_generated.replace("%"+data, data_converted)
     def generate_mimetext(self, sender):
         #Email formatting
-        mimetext_formatted = MIMEText(self.body_generated, 'html')
+        mimetext_formatted = MIMEMultipart()
+        mimetext_formatted.attach(MIMEText(self.body_generated, 'html'))
         mimetext_formatted["From"] = sender
         mimetext_formatted["Subject"] = self.subject
         mimetext_formatted["To"] = ", ".join(self.to)
         mimetext_formatted["CC"] = ", ".join(self.cc)
+        for f in files or []:
+            with open(f, "rb") as fil:
+                part = MIMEApplication(
+                    fil.read(),
+                    Name=basename(f)
+                )
+            # After the file is closed
+            part['Content-Disposition'] = 'attachment; filename="%s"' % basename(f)
+            mimetext_formatted.attach(part)
         return mimetext_formatted
     def __str__(self):
         return "to:  {0}, cc: {1}, subject: {2}".format(self.to, self.cc, self.subject)
@@ -180,10 +193,16 @@ class Controller:
             for recipient in recipient_list:
                 self.get_recipients_from_excel(row, recipient)
 
+            #attachment details
+            attachments = []
+            attachment_list = [(attachments, "ATTACHMENT")]
+            for attachment in attachment_list:
+                self.get_recipients_from_excel(row, attachment)
+                
             #email details
             subject = self.email_config["SUBJECT"]
             body_template = self.email_config["EMAIL_TEMPLATE"]
-            generated_email = GeneratedEmail(to,cc,subject,body_template, row)
+            generated_email = GeneratedEmail(to,cc,subject,attachments,body_template, row)
             self.generated_email_list.append(generated_email)
         self.gui.update_list(self.generated_email_list)
 
